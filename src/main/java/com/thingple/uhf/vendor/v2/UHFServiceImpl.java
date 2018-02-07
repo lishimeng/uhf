@@ -25,6 +25,8 @@ public class UHFServiceImpl implements IUHFService {
 	
 	private boolean inventoryRun = false;
 	
+	private boolean readerWorking = false;
+	
 	public UHFServiceImpl(String host, int port) {
 		this.host = host;
 		this.port = port;
@@ -56,6 +58,13 @@ public class UHFServiceImpl implements IUHFService {
 	public void disConnectDev() {
 		try {
 			System.out.println("closing connect...");
+			while (readerWorking) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 			socket.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -92,6 +101,7 @@ public class UHFServiceImpl implements IUHFService {
 				while (inventoryRun) {
 					long inventoryId = System.currentTimeMillis();
 					System.out.println("Start inventory:" + inventoryId);
+					readerWorking = true;
 					command.write(Register.Addr.inventory, 15);
 					boolean running = true;
 					PacketHandler handler = new PacketHandler(inventoryId, inventoryListener);
@@ -105,6 +115,7 @@ public class UHFServiceImpl implements IUHFService {
 					System.out.println("Inventory:" + inventoryId + " complete\n");
 					System.out.println("tags:" + handler.tagMap.size());
 					System.out.println("size:" + handler.tags.size());
+					readerWorking = false;
 				}
 				System.out.println("Inventory thread complete");
 			}
@@ -212,5 +223,10 @@ public class UHFServiceImpl implements IUHFService {
 		setAntennaEnable(Antenna.LOGIC_FOURTH, true);
 		setAntennaNum(Antenna.LOGIC_FOURTH);
 		setAntennaWorkTime(Antenna.LOGIC_FOURTH, defaultWorkTime);
+	}
+
+	@Override
+	public boolean status() {
+		return !socket.isClosed();
 	}
 }

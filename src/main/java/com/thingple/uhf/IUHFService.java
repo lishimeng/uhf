@@ -91,4 +91,5 @@ public interface IUHFService {
 	 */
 	void setInventoryListener(InventoryListener listener);
 	
+	boolean status();
 }
