@@ -226,7 +226,12 @@ public class UHFServiceImpl implements IUHFService {
 	}
 
 	@Override
-	public boolean status() {
+	public boolean isConnected() {
 		return !socket.isClosed();
+	}
+
+	@Override
+	public boolean isWorking() {
+		return readerWorking;
 	}
 }

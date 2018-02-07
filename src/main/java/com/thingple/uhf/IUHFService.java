@@ -91,5 +91,15 @@ public interface IUHFService {
 	 */
 	void setInventoryListener(InventoryListener listener);
 	
-	boolean status();
+	/**
+	 * 当前连接状态
+	 * @return
+	 */
+	boolean isConnected();
+	
+	/**
+	 * 是否在inventory操作中
+	 * @return
+	 */
+	boolean isWorking();
 }
