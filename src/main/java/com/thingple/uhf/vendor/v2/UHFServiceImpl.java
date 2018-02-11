@@ -8,6 +8,7 @@ import java.net.SocketAddress;
 import com.thingple.uhf.Antenna;
 import com.thingple.uhf.IUHFService;
 import com.thingple.uhf.InventoryListener;
+import com.thingple.uhf.TagInfo;
 import com.thingple.uhf.Util;
 
 public class UHFServiceImpl implements IUHFService {
@@ -135,8 +136,29 @@ public class UHFServiceImpl implements IUHFService {
 	}
 
 	@Override
-	public void inventoryOnce() {
+	public TagInfo inventoryOnce() {
 		System.out.println("inventory once");
+		long inventoryId = System.currentTimeMillis();
+		System.out.println("Start inventory:" + inventoryId);
+		readerWorking = true;
+		command.write(Register.Addr.inventory, 15);
+		boolean running = true;
+		PacketHandler handler = new PacketHandler(inventoryId, null);
+		while (running) {
+			int n = command.readByte();
+			running = handler.append(n);
+			if (!running) {
+				System.out.println("\nReceived full packets");
+			}
+		}
+		System.out.println("Inventory:" + inventoryId + " complete\n");
+		System.out.println("tags:" + handler.tagMap.size());
+		System.out.println("size:" + handler.tags.size());
+		readerWorking = false;
+		if (handler.tags.size() > 0) {
+			return handler.tags.get(0);
+		}
+		return null;
 	}
 
 	@Override
@@ -227,7 +249,7 @@ public class UHFServiceImpl implements IUHFService {
 
 	@Override
 	public boolean isConnected() {
-		return !socket.isClosed();
+		return socket == null || !socket.isClosed();
 	}
 
 	@Override

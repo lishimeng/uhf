@@ -78,7 +78,7 @@ public interface IUHFService {
 	/**
 	 * 盘点一次
 	 */
-	void inventoryOnce();
+	TagInfo inventoryOnce();
 	
 	/**
 	 * 停止盘点
