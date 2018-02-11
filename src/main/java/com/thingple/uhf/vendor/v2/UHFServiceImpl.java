@@ -249,7 +249,7 @@ public class UHFServiceImpl implements IUHFService {
 
 	@Override
 	public boolean isConnected() {
-		return socket == null || !socket.isClosed();
+		return socket != null && !socket.isClosed();
 	}
 
 	@Override
