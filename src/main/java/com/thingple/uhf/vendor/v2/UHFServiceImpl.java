@@ -277,17 +277,21 @@ public class UHFServiceImpl implements IUHFService {
 
 	@Override
 	public boolean isConnected() {
+		boolean socketAvailable = false;
 		if (socket != null && socket.isConnected() && !socket.isClosed()) {
 			try {
 				if (!inventoryRun && !readerWorking) {
 					socket.sendUrgentData(0xff);
+					socketAvailable = true;
+				} else {
+					socketAvailable = true;
 				}
 			} catch (IOException e) {
+				socketAvailable = false;
 				e.printStackTrace();
 			}
-			return true;
 		}
-		return false;
+		return socketAvailable;
 	}
 
 	@Override
