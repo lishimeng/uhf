@@ -75,20 +75,24 @@ public class UHFServiceImpl implements IUHFService {
 
 	@Override
 	public boolean setAntennaPower(Antenna antenna, int power) {
+		readerWorking = true;
 		selectAntenna(antenna);
 		System.out.println("set power " + antenna + ":" + power);
 		command.write(Register.Addr.antennaPower, power);
 		int fromDevice = getAntennaPower(antenna);
+		readerWorking = false;
 		return power == fromDevice;
 	}
 
 	@Override
 	public int getAntennaPower(Antenna antenna) {
+		readerWorking = true;
 		selectAntenna(antenna);
 		System.out.println("read power " + antenna);
 		command.read(Register.Addr.antennaPower, 0);
 		byte[] res = command.optResult(8);
 		System.out.println(Util.printHexString(res));
+		readerWorking = false;
 		return Util.bytesToInt(res[4], res[5], res[6], res[7]);
 	}
 
@@ -184,58 +188,70 @@ public class UHFServiceImpl implements IUHFService {
 
 	@Override
 	public boolean setAntennaEnable(Antenna antenna, boolean enable) {
+		readerWorking = true;
 		selectAntenna(antenna);
 		System.out.println("set antenna status " + antenna + ":" + (enable ? "enable" : "disable"));
 		command.write(Register.Addr.antennaStatus, enable ? 1 : 0);
+		readerWorking = false;
 		return antennaEnable(antenna);
 	}
 
 	@Override
 	public boolean antennaEnable(Antenna antenna) {
+		readerWorking = true;
 		selectAntenna(antenna);
 		System.out.println("get antenna status " + antenna);
 		command.read(Register.Addr.antennaStatus, 0);
 		byte[] res = command.optResult(8);
 		System.out.println(Util.printHexString(res));
 		int enable = Util.bytesToInt(res[4], res[5], res[6], res[7]);
+		readerWorking = false;
 		return enable == 1;
 	}
 
 	@Override
 	public boolean setAntennaWorkTime(Antenna antenna, int during) {
+		readerWorking = true;
 		selectAntenna(antenna);
 		System.out.println("set work time " + antenna + ":" + during);
 		command.write(Register.Addr.antennaWorkTime, during);
 		int fromDevice = getAntennaWorkTime(antenna);
+		readerWorking = false;
 		return fromDevice == during;
 	}
 
 	@Override
 	public int getAntennaWorkTime(Antenna antenna) {
+		readerWorking = true;
 		selectAntenna(antenna);
 		System.out.println("get work time " + antenna);
 		command.read(Register.Addr.antennaWorkTime, 0);
 		byte[] res = command.optResult(8);
 		System.out.println(Util.printHexString(res));
+		readerWorking = false;
 		return Util.bytesToInt(res[4], res[5], res[6], res[7]);
 	}
 
 	@Override
 	public int getAntennaNum(Antenna antenna) {
+		readerWorking = true;
 		selectAntenna(antenna);
 		System.out.println("get antenna physical num " + antenna);
 		command.read(Register.Addr.antennaNumber, 0);
 		byte[] res = command.optResult(8);
 		System.out.println(Util.printHexString(res));
+		readerWorking = false;
 		return Util.bytesToInt(res[4], res[5], res[6], res[7]);
 	}
 
 	@Override
 	public boolean setAntennaNum(Antenna antenna) {
+		readerWorking = true;
 		selectAntenna(antenna);
 		System.out.println("set antenna physical number " + antenna);
 		command.write(Register.Addr.antennaNumber, antenna.getIndex());
 		int fromDevice = getAntennaNum(antenna);
+		readerWorking = false;
 		return fromDevice == antenna.getIndex();
 	}
 	
@@ -261,7 +277,17 @@ public class UHFServiceImpl implements IUHFService {
 
 	@Override
 	public boolean isConnected() {
-		return socket != null && socket.isConnected() && !socket.isClosed();
+		if (socket != null && socket.isConnected() && !socket.isClosed()) {
+			try {
+				if (!inventoryRun && !readerWorking) {
+					socket.sendUrgentData(0xff);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return true;
+		}
+		return false;
 	}
 
 	@Override
