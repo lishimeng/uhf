@@ -126,13 +126,8 @@ public class Command {
 		return res;
 	}
 	
-	public int readByte() {
-		int n = -1;
-		try {
-			n = in.read();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public int readByte() throws IOException {
+		int n = in.read();
 		return n;
 	}
 	
